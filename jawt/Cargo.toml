@@ -1,0 +1,49 @@
+[package]
+name = "jawt"
+description = "Cross-platform Rust bindings to Java AWT"
+homepage = "https://github.com/gobley/jawt"
+repository = "https://github.com/gobley/jawt"
+readme = "README.md"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.73"
+authors = ["Chanjung Kim <chanjungkim@paxbun.dev>"]
+categories = ["api-bindings"]
+keywords = ["java", "jni", "jawt", "awt"]
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bitflags = "2"
+euclid = { version = "0.22", optional = true, default-features = false, features = [
+    "std",
+] }
+jawt-sys = { path = "../jawt-sys" }
+jni = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_UI_WindowsAndMessaging",
+], default-features = false }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = { workspace = true, default-features = false }
+objc2-app-kit = { workspace = true, features = [
+    "NSResponder",
+    "NSView",
+], default-features = false }
+objc2-quartz-core = { workspace = true, features = [
+    "CALayer",
+], default-features = false }
+
+[target.'cfg(all(target_family = "unix", not(target_vendor = "apple"), not(target_os = "android")))'.dependencies]
+x11-dl = { workspace = true, default-features = false }
+
+[features]
+euclid = ["dep:euclid"]
+java-1-4 = []
+java-9 = ["java-1-4"]
+default = ["java-9"]

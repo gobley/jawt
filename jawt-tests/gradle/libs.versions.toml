@@ -1,0 +1,7 @@
+[versions]
+kotlin = "2.1.21"
+gobley = "0.3.1"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+gobley-cargo = { id = "dev.gobley.cargo", version.ref = "gobley" }

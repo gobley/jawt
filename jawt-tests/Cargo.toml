@@ -1,0 +1,39 @@
+[package]
+name = "jawt-tests"
+description = "Unit tests for jawt"
+homepage = "https://github.com/gobley/jawt"
+repository = "https://github.com/gobley/jawt"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+authors = ["Chanjung Kim <chanjungkim@paxbun.dev>"]
+publish = false
+
+[lib]
+path = "src/main/rust/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+env_logger = "0.11"
+jawt = { path = "../jawt" }
+jni = "0.21"
+log = "0.4"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.60", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-quartz-core = { version = "0.3", features = [
+    "CALayer",
+    "CAMetalLayer",
+    "CATransaction",
+    "objc2-core-foundation",
+    "objc2-core-graphics",
+] }
+
+[target.'cfg(all(target_family = "unix", not(target_vendor = "apple"), not(target_os = "android")))'.dependencies]
+x11-dl = "2"

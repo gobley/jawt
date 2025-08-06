@@ -1,0 +1,14 @@
+[workspace]
+members = ["jawt", "jawt-sys"]
+exclude = ["jawt-sys-generator", "jawt-tests"]
+resolver = "2"
+
+[workspace.dependencies]
+jni = { version = "0.21", default-features = false }
+jni-sys = { version = "0.3", default-features = false }
+objc2 = { version = "0.6", default-features = false }
+objc2-app-kit = { version = "0.3", default-features = false }
+objc2-quartz-core = { version = "0.3", default-features = false }
+windows = { version = "0.60", default-features = false }
+windows-sys = { version = "0.60", default-features = false }
+x11-dl = { version = "2", default-features = false }

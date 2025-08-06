@@ -1,0 +1,26 @@
+[package]
+name = "jawt-sys"
+description = "Raw bindings to Java AWT"
+homepage = "https://github.com/gobley/jawt"
+repository = "https://github.com/gobley/jawt"
+readme = "README.md"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.73"
+authors = ["Chanjung Kim <chanjungkim@paxbun.dev>"]
+categories = ["external-ffi-bindings"]
+keywords = ["java", "jni", "jawt", "awt"]
+license = "MIT OR Apache-2.0"
+exclude = [".bindgen"]
+
+[dependencies]
+jni-sys = { workspace = true, default-features = false }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+], default-features = false }
+
+[target.'cfg(all(target_family = "unix", not(target_vendor = "apple"), not(target_os = "android")))'.dependencies]
+x11-dl = { workspace = true, default-features = false }
