@@ -4,3 +4,20 @@
 //! these bindings, please refer to the [Oracle Documentation].
 //!
 //! [Oracle Documentation]: https://docs.oracle.com/en/java/javase/17/docs/specs/AWT_Native_Interface.html
+
+mod awt;
+pub use awt::*;
+
+mod ds;
+pub use ds::*;
+
+mod dsi;
+pub use dsi::*;
+
+mod rect;
+pub use rect::*;
+
+mod version;
+pub use version::*;
+
+pub use jawt_sys as sys;
