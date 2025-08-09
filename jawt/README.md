@@ -10,9 +10,13 @@ Cross-platform, safe Rust bindings to Java AWT Native Interface.
 
 ## Features
 
-- `euclid`: Enables conversions between `jawt::Rect` and `euclid::Rect`.
-- `java-1-4` (default): Enables APIs avaialble since Java 1.4.
-- `java-9` (default): Enables APIs available since Java 9.
+| Feature name      | Default | Description                                                                                                                        |
+| ----------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `euclid`          |         | Enables conversions between `jawt::Rect` and `euclid::Rect`.                                                                       |
+| `java-1-4`        | ✅      | Enables APIs introduced in Java 1.4.                                                                                               |
+| `java-9`          | ✅      | Enables APIs introduced in Java 9.                                                                                                 |
+| `dynamic-get-awt` | ✅      | Configures `jawt::Awt` to locate `JAWT_GetAWT` in `jawt.dll` or`libjawt.{dylib, so}` at runtime.                                   |
+| `static-get-awt`  |         | Configures `jawt::Awt` to use `jawt_sys::JAWT_GetAWT`. Users must manually link `jawt.dll` or `libjawt.{dylib, so}` at build time. |
 
 ## Licensing
 

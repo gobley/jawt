@@ -29,6 +29,8 @@ pub type AwtPlatformInfo = NonNull<objc2_app_kit::NSView>;
 ))]
 pub type AwtPlatformInfo = x11_dl::xlib::Window;
 
+type UnsafeAwtGetter = unsafe extern "C" fn(*mut jni::sys::JNIEnv, *mut JAWT) -> jboolean;
+
 /// Structure for containing native AWT functions.
 pub struct Awt(pub(crate) JAWT);
 
@@ -98,11 +100,194 @@ impl Awt {
     }
 
     /// Consumes [Awt] and returns the underlying [JAWT] instance.
+    #[inline(always)]
     pub fn into_inner(self) -> JAWT {
         self.0
     }
 
+    #[inline(always)]
+    fn find_get_awt(env: &JNIEnv) -> Option<UnsafeAwtGetter> {
+        use std::sync::atomic::{AtomicPtr, Ordering};
+
+        fn invalid_get_awt(_: *mut jni::sys::JNIEnv, _: *mut JAWT) -> jboolean {
+            0
+        }
+
+        const INVALID_GET_AWT: *mut () = invalid_get_awt as _;
+        static GET_AWT: AtomicPtr<()> = AtomicPtr::new(INVALID_GET_AWT);
+
+        let cached_get_awt = GET_AWT.load(Ordering::SeqCst);
+        if cached_get_awt != INVALID_GET_AWT {
+            return Some(unsafe {
+                std::mem::transmute::<*mut (), UnsafeAwtGetter>(cached_get_awt)
+            });
+        }
+
+        let finders: &[unsafe fn(&JNIEnv) -> Option<UnsafeAwtGetter>] = &[
+            #[cfg(feature = "dynamic-get-awt")]
+            Self::find_dynamic_get_awt,
+            #[cfg(feature = "static-get-awt")]
+            Self::find_static_get_awt,
+        ];
+        for finder in finders {
+            if let Some(get_awt) = unsafe { finder(env) } {
+                let _ = GET_AWT.compare_exchange(
+                    INVALID_GET_AWT,
+                    get_awt as _,
+                    Ordering::SeqCst,
+                    Ordering::SeqCst,
+                );
+                return Some(get_awt);
+            }
+        }
+
+        None
+    }
+
+    #[inline(always)]
+    #[cfg(feature = "dynamic-get-awt")]
+    unsafe fn find_dynamic_get_awt(env: &JNIEnv) -> Option<UnsafeAwtGetter> {
+        // Unsafe operations below: the safe JNI wrapper allocates a new `CString` every time a
+        // `&str` is passed. We choose to use the unsafe counterpart to prevent it.
+
+        let env = env.get_raw();
+
+        let find_class = unsafe { (**env).FindClass }?;
+        let get_static_method_id = unsafe { (**env).GetStaticMethodID }?;
+        let call_static_object_method = unsafe { (**env).CallStaticObjectMethod }?;
+        let new_string_utf = unsafe { (**env).NewStringUTF }?;
+
+        // C-string literals become stable starting with Rust 1.77
+        let system_class = unsafe { find_class(env, b"java/lang/System\0".as_ptr() as _) };
+        if system_class.is_null() {
+            return None;
+        }
+
+        let get_property_method = unsafe {
+            get_static_method_id(
+                env,
+                system_class,
+                b"getProperty\0".as_ptr() as _,
+                b"(Ljava/lang/String;)Ljava/lang/String;\0".as_ptr() as _,
+            )
+        };
+        if get_property_method.is_null() {
+            return None;
+        }
+
+        let java_home_string = unsafe { new_string_utf(env, b"java.home\0".as_ptr() as _) };
+        if java_home_string.is_null() {
+            return None;
+        }
+
+        let property_string = unsafe {
+            call_static_object_method(env, system_class, get_property_method, java_home_string)
+        };
+        if property_string.is_null() {
+            return None;
+        }
+
+        Self::find_awt_from_java_home(env, property_string)
+    }
+
+    #[inline(always)]
+    #[cfg(all(feature = "dynamic-get-awt", target_family = "windows"))]
+    unsafe fn find_awt_from_java_home(
+        env: *mut jni::sys::JNIEnv,
+        java_home: jstring,
+    ) -> Option<UnsafeAwtGetter> {
+        use std::ptr;
+
+        use libc::*;
+        use windows::core::{PCSTR, PCWSTR};
+        use windows::Win32::System::LibraryLoader::{GetProcAddress, LoadLibraryW};
+
+        let get_string_chars = (**env).GetStringChars?;
+        let release_string_chars = (**env).ReleaseStringChars?;
+        let java_home_chars = get_string_chars(env, java_home, ptr::null_mut());
+        let java_home_chars_len = wcslen(java_home_chars);
+
+        let path_suffix = utf16_literal::utf16!("\\bin\\jawt.dll\0");
+
+        let mut jawt_path = Vec::with_capacity(java_home_chars_len + path_suffix.len());
+
+        ptr::copy(java_home_chars, jawt_path.as_mut_ptr(), java_home_chars_len);
+        ptr::copy(
+            path_suffix.as_ptr() as _,
+            jawt_path.as_mut_ptr().add(java_home_chars_len),
+            path_suffix.len(),
+        );
+
+        jawt_path.set_len(java_home_chars_len + path_suffix.len());
+
+        release_string_chars(env, java_home, java_home_chars);
+
+        let library = LoadLibraryW(PCWSTR(jawt_path.as_mut_ptr() as _)).ok()?;
+        let symbol = GetProcAddress(library, PCSTR(b"JAWT_GetAWT\0".as_ptr() as _))?;
+
+        Some(std::mem::transmute::<
+            unsafe extern "system" fn() -> isize,
+            UnsafeAwtGetter,
+        >(symbol))
+    }
+
+    #[inline(always)]
+    #[cfg(all(feature = "dynamic-get-awt", target_family = "unix"))]
+    unsafe fn find_awt_from_java_home(
+        env: *mut jni::sys::JNIEnv,
+        java_home: jstring,
+    ) -> Option<UnsafeAwtGetter> {
+        use std::ptr;
+
+        use libc::*;
+
+        let get_string_utf_chars = (**env).GetStringUTFChars?;
+        let release_string_utf_chars = (**env).ReleaseStringUTFChars?;
+        let java_home_chars = get_string_utf_chars(env, java_home, ptr::null_mut());
+        let java_home_chars_len = strlen(java_home_chars);
+
+        #[cfg(target_os = "macos")]
+        let path_suffix = b"/lib/libjawt.dylib\0";
+        #[cfg(not(target_os = "macos"))]
+        let path_suffix = b"/lib/libjawt.so\0";
+
+        let mut jawt_path = Vec::with_capacity(java_home_chars_len + path_suffix.len());
+
+        ptr::copy(java_home_chars, jawt_path.as_mut_ptr(), java_home_chars_len);
+        ptr::copy(
+            path_suffix.as_ptr() as _,
+            jawt_path.as_mut_ptr().add(java_home_chars_len),
+            path_suffix.len(),
+        );
+
+        jawt_path.set_len(java_home_chars_len + path_suffix.len());
+
+        release_string_utf_chars(env, java_home, java_home_chars);
+
+        let handle = dlopen(jawt_path.as_ptr() as _, RTLD_LAZY | RTLD_LOCAL);
+        if handle.is_null() {
+            dlerror();
+            return None;
+        }
+
+        let symbol = dlsym(handle, b"JAWT_GetAWT\0".as_ptr() as _);
+        if symbol.is_null() {
+            dlerror();
+            return None;
+        }
+
+        Some(std::mem::transmute::<*mut c_void, UnsafeAwtGetter>(symbol))
+    }
+
+    #[inline(always)]
+    #[cfg(feature = "static-get-awt")]
+    fn find_static_get_awt(env: &JNIEnv) -> Option<UnsafeAwtGetter> {
+        let _ = env;
+        Some(JAWT_GetAWT)
+    }
+
     fn from_version_raw(env: &JNIEnv, version: jint) -> Option<Self> {
+        let get_awt = Self::find_get_awt(env)?;
         let mut inner = JAWT {
             version,
             GetDrawingSurface: None,
@@ -114,7 +299,7 @@ impl Awt {
             SetBounds: None,
             SynthesizeWindowActivation: None,
         };
-        if unsafe { JAWT_GetAWT(env.get_raw(), &mut inner) } == JNI_FALSE {
+        if unsafe { get_awt(env.get_raw(), &mut inner) } == JNI_FALSE {
             return None;
         }
         Some(Self(inner))
