@@ -12,6 +12,10 @@ Rust bindings to Java AWT Native Interface.
 - [jawt-sys-generator](./jawt-sys-generator): The bindgen for `jawt-sys`.
 - [jawt-tests](./jawt-tests): A simple Kotlin project that integrates WGPU and AWT using `jawt`.
 
+  | Windows                                    | macOS                                  | Linux                                  |
+  | ------------------------------------------ | -------------------------------------- | -------------------------------------- |
+  | ![Windows WGPU Demo](./images/windows.png) | ![macOS WGPU Demo](./images/macos.png) | ![Linux WGPU Demo](./images/linux.png) |
+
 ## Licensing
 
 Dual-licensed under MIT and Apache License version 2.0.

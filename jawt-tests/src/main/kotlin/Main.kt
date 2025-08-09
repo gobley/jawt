@@ -8,12 +8,18 @@ import java.awt.event.WindowEvent
 import kotlin.system.exitProcess
 
 fun main() {
-    val frame = Frame("JAWT tests: Rust.add(5, 4) = ${Rust.add(5, 4)}")
-    frame.setSize(300, 300)
-    frame.isVisible = true
+    val rustCanvas = RustCanvas().apply {
+        setSize(300, 300)
+    }
+    val frame = Frame("JAWT tests").apply {
+        setSize(300, 300)
+        add(rustCanvas)
+    }
     frame.addWindowListener(object : WindowAdapter() {
         override fun windowClosing(e: WindowEvent) {
+            rustCanvas.close()
             exitProcess(0)
         }
     })
+    frame.isVisible = true
 }
