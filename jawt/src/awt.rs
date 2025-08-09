@@ -16,6 +16,19 @@ use crate::sys::*;
 use crate::version::AwtVersion;
 use crate::DrawingSurface;
 
+#[cfg(target_os = "windows")]
+pub type AwtPlatformInfo = windows::Win32::Foundation::HWND;
+
+#[cfg(target_os = "macos")]
+pub type AwtPlatformInfo = NonNull<objc2_app_kit::NSView>;
+
+#[cfg(all(
+    target_family = "unix",
+    not(target_vendor = "apple"),
+    not(target_os = "android")
+))]
+pub type AwtPlatformInfo = x11_dl::xlib::Window;
+
 /// Structure for containing native AWT functions.
 pub struct Awt(pub(crate) JAWT);
 
@@ -176,7 +189,33 @@ impl Awt {
     pub unsafe fn unlock(&self, env: &JNIEnv) {
         unsafe { (self.0.Unlock.expect("JAWT.Unlock is not available"))(env.get_raw()) };
     }
+}
 
+impl Awt {
+    #[cfg(any(feature = "java-1-4", feature = "java-9"))]
+    #[cfg(target_os = "windows")]
+    fn lower_platform_info(platform_info: AwtPlatformInfo) -> *mut c_void {
+        platform_info.0
+    }
+
+    #[cfg(any(feature = "java-1-4", feature = "java-9"))]
+    #[cfg(target_os = "macos")]
+    fn lower_platform_info(platform_info: AwtPlatformInfo) -> *mut c_void {
+        platform_info.as_ptr() as *mut c_void
+    }
+
+    #[cfg(any(feature = "java-1-4", feature = "java-9"))]
+    #[cfg(all(
+        target_family = "unix",
+        not(target_vendor = "apple"),
+        not(target_os = "android")
+    ))]
+    fn lower_platform_info(platform_info: AwtPlatformInfo) -> *mut c_void {
+        platform_info as *mut c_void
+    }
+}
+
+impl Awt {
     #[cfg(feature = "java-1-4")]
     /// Since [1.4](AwtVersion::VERSION_1_4)
     ///
@@ -196,14 +235,14 @@ impl Awt {
     pub unsafe fn component_of<'env>(
         &self,
         env: &JNIEnv<'env>,
-        platform_info: *mut c_void,
+        platform_info: AwtPlatformInfo,
     ) -> JObject<'env> {
         JObject::from_raw((self
             .0
             .GetComponent
             .expect("JAWT.GetComponent is not available"))(
             env.get_raw(),
-            platform_info,
+            Self::lower_platform_info(platform_info),
         ))
     }
 }
@@ -252,13 +291,14 @@ impl Awt {
     pub unsafe fn new_embedded_frame<'env>(
         &self,
         env: &JNIEnv<'env>,
-        platform_info: *mut c_void,
+        platform_info: AwtPlatformInfo,
     ) -> Option<AwtEmbeddedFrame<'env>> {
         AwtEmbeddedFrame::from_inner(JObject::from_raw((self
             .0
             .CreateEmbeddedFrame
             .expect("JAWT.CreateEmbeddedFrame is not available"))(
-            env.get_raw(), platform_info
+            env.get_raw(),
+            Self::lower_platform_info(platform_info),
         )))
     }
 

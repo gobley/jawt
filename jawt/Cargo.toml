@@ -17,6 +17,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 bitflags = "2"
 euclid = { version = "0.22", optional = true, default-features = false, features = [
+    # See servo/euclid#544
     "std",
 ] }
 jawt-sys = { path = "../jawt-sys" }

@@ -5,13 +5,28 @@
 use std::fmt;
 use std::marker::PhantomData;
 use std::ptr::NonNull;
-use std::{ffi::c_void, slice};
+use std::slice;
 
 use jawt_sys::*;
 
-use crate::{DrawingSurfaceGuard, Rect};
+use crate::ds::DrawingSurfaceGuard;
+use crate::Rect;
 
 type DrawingSurfaceInfoFree = unsafe extern "C" fn(dsi: *mut JAWT_DrawingSurfaceInfo);
+
+#[cfg(target_os = "windows")]
+pub type DrawingSurfacePlatformInfo = crate::md::windows::Win32DrawingSurfaceInfo;
+
+#[cfg(target_os = "macos")]
+pub type DrawingSurfacePlatformInfo =
+    objc2::runtime::ProtocolObject<dyn crate::md::macos::SurfaceLayers>;
+
+#[cfg(all(
+    target_family = "unix",
+    not(target_vendor = "apple"),
+    not(target_os = "android")
+))]
+pub type DrawingSurfacePlatformInfo = crate::md::unix::X11DrawingSurfaceInfo;
 
 /// Structure for containing the underlying drawing information of a component.
 pub struct DrawingSurfaceInfo<'a> {
@@ -69,13 +84,9 @@ impl DrawingSurfaceInfo<'_> {
         (self.inner, self.free)
     }
 
-    pub const unsafe fn platform_info(&mut self) -> *mut c_void {
-        self.as_ref().platformInfo
-    }
-
-    /// Cached pointer to the underlying drawing surface.
-    pub const unsafe fn raw_drawing_surface(&mut self) -> *mut JAWT_DrawingSurface {
-        self.as_ref().ds
+    /// Pointer to the platform-specific information.
+    pub const fn platform_info(&self) -> &DrawingSurfacePlatformInfo {
+        unsafe { &*(self.as_ref().platformInfo as *const DrawingSurfacePlatformInfo) }
     }
 
     /// Bounding rectangle of the drawing surface.
