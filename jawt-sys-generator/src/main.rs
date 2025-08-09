@@ -29,11 +29,12 @@ struct Cli {
 
 fn sys_manifest_dir() -> &'static Path {
     static SYS_MANIFEST_DIR: Lazy<PathBuf> = Lazy::new(|| {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("jawt-sys")
-            .canonicalize()
-            .expect("cannot canonicalize the path to jawt-sys")
+        dunce::canonicalize(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("jawt-sys"),
+        )
+        .expect("cannot canonicalize the path to jawt-sys")
     });
     &SYS_MANIFEST_DIR
 }
@@ -111,6 +112,7 @@ async fn main() -> anyhow::Result<()> {
     let builder = bindgen::builder()
         .header(main_header_destination.display().to_string())
         .allowlist_recursively(false)
+        .use_core()
         .raw_line("#![allow(non_camel_case_types)]")
         .raw_line("#![allow(non_snake_case)]")
         .raw_line("")
@@ -138,29 +140,29 @@ async fn main() -> anyhow::Result<()> {
         .blocklist_file(
             Header::Jni
                 .destination(&header_destination_dir)
-                .display()
-                .to_string(),
+                .to_string_lossy()
+                .replace("\\", "\\\\"),
         )
         .blocklist_file(
             Header::JniPlatform
                 .destination(&header_destination_dir)
-                .display()
-                .to_string(),
+                .to_string_lossy()
+                .replace("\\", "\\\\"),
         )
         .allowlist_file(
             Header::Jawt
                 .destination(&header_destination_dir)
-                .display()
-                .to_string(),
+                .to_string_lossy()
+                .replace("\\", "\\\\"),
         )
         .allowlist_file(
             Header::JawtPlatform
                 .destination(&header_destination_dir)
-                .display()
-                .to_string(),
+                .to_string_lossy()
+                .replace("\\", "\\\\"),
         )
         .rust_target(rust_target)
-        .clang_arg(format!("-I{}", header_destination_dir.display()));
+        .clang_arg(format!("-I{}", header_destination_dir.to_string_lossy()));
 
     let mut bindings = builder
         .generate()
@@ -169,7 +171,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Postprocessing
     if matches!(current_platform, Platform::Windows) {
-        let regex = Regex::new("pub type (HWND|HBITMAP|HDC|HPALETTE) = .*;\n").unwrap();
+        let regex = Regex::new("(?m)pub type (HWND|HBITMAP|HDC|HPALETTE) = .*;\r?\n?").unwrap();
         bindings = regex.replace_all(&bindings, "").into_owned();
     }
 

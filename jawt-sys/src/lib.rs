@@ -5,6 +5,8 @@
 //!
 //! [Oracle Documentation]: https://docs.oracle.com/en/java/javase/17/docs/specs/AWT_Native_Interface.html
 
+#![no_std]
+
 #[cfg(target_os = "windows")]
 mod bindings_windows;
 #[cfg(target_os = "windows")]
