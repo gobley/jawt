@@ -1,0 +1,32 @@
+name: Publish to crates.io
+
+on:
+  workflow_call:
+    inputs:
+      package-name:
+        type: string
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.package-name }} to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the main branch
+        uses: actions/checkout@v4
+
+      - name: Set up credentials before publishing
+        run: cargo login ${CRATES_IO_API_TOKEN}
+        env:
+          CRATES_IO_API_TOKEN: ${{ secrets.CRATES_IO_API_TOKEN }}
+
+      - name: Run checks before publishing
+        run: cargo publish --dry-run
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Publish ${{ inputs.package-name }} to crates.io
+        run: cargo publish
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"

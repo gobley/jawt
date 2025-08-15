@@ -1,0 +1,14 @@
+name: Publish jawt to crates.io
+
+on:
+  push:
+    tags:
+      - "jawt-v*"
+
+jobs:
+  publish-jawt:
+    name: Publish jawt to crates.io
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      package-name: jawt
