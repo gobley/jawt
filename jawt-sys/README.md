@@ -8,7 +8,7 @@ This package can be used with popular FFI packages such as [jni-sys](https://cra
 
 ## How to re-generate bindings
 
-Run [./generate.ps1](./generate.ps1) on PowerShell. This will install bindgen 0.69 in `.bindgen` not to update the bindgen already installed in `CARGO_HOME`.
+Run [`jawt-sys-generator`](https://github.com/gobley/jawt/tree/main/jawt-sys-generator). This will download JAWT headers from OpenJDK and generate bindings from them.
 
 ## Versions
 
