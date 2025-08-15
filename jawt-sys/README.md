@@ -16,6 +16,12 @@ Run [./generate.ps1](./generate.ps1) on PowerShell. This will install bindgen 0.
 | -------- | ------- | ------- | ----------- | ------ | ---- |
 | 0.1.0    | 17      | 0.3     | 0.60        | 2      | 1.74 |
 
+## Features
+
+| Feature name     | Description                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `static-get-awt` | Enables `jawt_sys::JAWT_GetAWT()`. To call the function, users must manually link `jawt.dll` or `libjawt.{dylib, so}` at build time. |
+
 ## How to use
 
 Please refer to [the WGPU example](https://github.com/gobley/jawt/tree/main/jawt-tests) in the [GitHub repository](https://github.com/gobley/jawt).

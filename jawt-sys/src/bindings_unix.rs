@@ -253,6 +253,7 @@ fn bindgen_test_layout_jawt() {
 }
 pub type JAWT = jawt;
 extern "C" {
+    #[cfg(feature = "static-get-awt")]
     pub fn JAWT_GetAWT(env: *mut JNIEnv, awt: *mut JAWT) -> jboolean;
 }
 #[repr(C)]

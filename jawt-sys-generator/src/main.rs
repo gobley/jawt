@@ -170,9 +170,12 @@ async fn main() -> anyhow::Result<()> {
         .to_string();
 
     // Postprocessing
-    if matches!(current_platform, Platform::Windows) {
-        let regex = Regex::new("(?m)pub type (HWND|HBITMAP|HDC|HPALETTE) = .*;\r?\n?").unwrap();
-        bindings = regex.replace_all(&bindings, "").into_owned();
+    {
+        if matches!(current_platform, Platform::Windows) {
+            let regex = Regex::new("(?m)pub type (HWND|HBITMAP|HDC|HPALETTE) = .*;\r?\n?").unwrap();
+            bindings = regex.replace_all(&bindings, "").into_owned();
+        }
+        bindings = bindings.replace("pub fn", "#[cfg(feature = \"static-get-awt\")]\n    pub fn");
     }
 
     let bindings_destination_dir = sys_manifest_dir().join("src");

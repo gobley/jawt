@@ -20,7 +20,7 @@ euclid = { version = "0.22", optional = true, default-features = false, features
     # See servo/euclid#544
     "std",
 ] }
-jawt-sys = { path = "../jawt-sys" }
+jawt-sys = { path = "../jawt-sys", default-features = false }
 jni = { workspace = true }
 libc = { version = "0.2", default-features = false }
 
@@ -51,5 +51,5 @@ euclid = ["dep:euclid"]
 java-1-4 = []
 java-9 = ["java-1-4"]
 dynamic-get-awt = []
-static-get-awt = []
+static-get-awt = ["jawt-sys/static-get-awt"]
 default = ["java-1-4", "java-9", "dynamic-get-awt"]

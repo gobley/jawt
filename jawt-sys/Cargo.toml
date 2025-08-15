@@ -24,3 +24,6 @@ windows-sys = { workspace = true, features = [
 
 [target.'cfg(all(target_family = "unix", not(target_vendor = "apple"), not(target_os = "android")))'.dependencies]
 x11-dl = { workspace = true, default-features = false }
+
+[features]
+static-get-awt = []
