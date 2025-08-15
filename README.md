@@ -1,7 +1,8 @@
 # `jawt`
 
-[![License](https://img.shields.io/github/license/gobley/jawt)](https://github.com/gobley/jawt/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/gobley/jawt)](https://github.com/gobley/jawt/blob/main/LICENSE-APACHE)
 [![Crates.io](https://img.shields.io/crates/v/jawt)](https://crates.io/crates/jawt)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gobley/jawt/pr-build-jawt.yml?branch=main&label=tests)](https://github.com/gobley/jawt/actions/workflows/pr-build-jawt.yml?query=branch%3Amain)
 
 Rust bindings to Java AWT Native Interface.
 
