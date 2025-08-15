@@ -79,7 +79,7 @@ impl DrawingSurface {
     }
 
     /// Lock the surface of the target component for native rendering.
-    pub fn lock(&mut self) -> Option<(DrawingSurfaceLockResult, DrawingSurfaceGuard)> {
+    pub fn lock(&mut self) -> Option<(DrawingSurfaceLockResult, DrawingSurfaceGuard<'_>)> {
         let lock_result = unsafe {
             (self
                 .as_ref()
@@ -131,7 +131,7 @@ pub struct DrawingSurfaceGuard<'a> {
 }
 
 impl DrawingSurfaceGuard<'_> {
-    pub fn drawing_surface_info(&mut self) -> Option<DrawingSurfaceInfo> {
+    pub fn drawing_surface_info(&mut self) -> Option<DrawingSurfaceInfo<'_>> {
         let get_drawing_surface_info = self
             .drawing_surface
             .as_ref()
