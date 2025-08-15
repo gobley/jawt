@@ -16,6 +16,10 @@ Run [./generate.ps1](./generate.ps1) on PowerShell. This will install bindgen 0.
 | -------- | ------- | ------- | ----------- | ------ | ---- |
 | 0.1.0    | 17      | 0.3     | 0.60        | 2      | 1.73 |
 
+## How to use
+
+Please refer to [the WGPU example](https://github.com/gobley/jawt/tree/main/jawt-tests) in the [GitHub repository](https://github.com/gobley/jawt).
+
 ## Licensing
 
 Dual-licensed under MIT and Apache License version 2.0.

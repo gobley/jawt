@@ -18,6 +18,10 @@ Cross-platform, safe Rust bindings to Java AWT Native Interface.
 | `dynamic-get-awt` | ✅      | Configures `jawt::Awt` to locate `JAWT_GetAWT` in `jawt.dll` or`libjawt.{dylib, so}` at runtime.                                   |
 | `static-get-awt`  |         | Configures `jawt::Awt` to use `jawt_sys::JAWT_GetAWT`. Users must manually link `jawt.dll` or `libjawt.{dylib, so}` at build time. |
 
+## How to use
+
+Please refer to [the WGPU example](https://github.com/gobley/jawt/tree/main/jawt-tests) in the [GitHub repository](https://github.com/gobley/jawt).
+
 ## Licensing
 
 Dual-licensed under MIT and Apache License version 2.0.
