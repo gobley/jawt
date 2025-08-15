@@ -1,0 +1,14 @@
+name: Build and run checks on jawt-sys
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-jawt:
+    name: Build and run checks on jawt-sys
+    uses: ./.github/workflows/pr-build.yml
+    with:
+      package-name: jawt-sys

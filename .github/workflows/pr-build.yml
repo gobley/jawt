@@ -1,0 +1,125 @@
+name: Build and run checks
+
+on:
+  workflow_call:
+    inputs:
+      package-name:
+        type: string
+
+jobs:
+  build:
+    name: Build and run checks
+    strategy:
+      matrix:
+        profile: [dev, release]
+        rust-version: ["1.74", "1.79", "1.84", "1.89"]
+        target:
+          # Windows Targets
+          - x86_64-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+          - x86_64-pc-windows-gnu
+
+          # macOS Targets
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+
+          # Linux Targets
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+        include:
+          # Windows Targets
+          - target: x86_64-pc-windows-msvc
+            name: x86_64 Windows (Visual C++)
+            os: windows-latest
+            tests: true
+          - target: aarch64-pc-windows-msvc
+            name: AArch64 Windows (Visual C++)
+            os: windows-latest
+            tests: false
+          - target: x86_64-pc-windows-gnu
+            name: x86_64 Windows (MinGW)
+            os: windows-latest
+            tests: true
+
+          # macOS Targets
+          - target: x86_64-apple-darwin
+            name: x86_64 macOS
+            os: macos-latest
+            tests: false
+          - target: aarch64-apple-darwin
+            name: AArch64 macOS
+            os: macos-latest
+            tests: true
+
+          # Linux Targets
+          - target: x86_64-unknown-linux-gnu
+            name: x86_64 Linux (glibc)
+            os: ubuntu-latest
+            tests: true
+          - target: aarch64-unknown-linux-gnu
+            name: AArch64 Linux (glibc)
+            os: ubuntu-latest
+            tests: false
+          - target: x86_64-unknown-linux-musl
+            name: x86_64 Linux (musl)
+            os: ubuntu-latest
+            tests: true
+          - target: aarch64-unknown-linux-musl
+            name: AArch64 Linux (musl)
+            os: ubuntu-latest
+            tests: false
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set the default Rust version to ${{ matrix.rust-version }}
+        run: rustup default ${{ matrix.rust-version }}
+
+      - name: Setup cross-compilation for ${{ matrix.name }}
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Setup MSYS2
+        if: ${{ contains(matrix.target, 'windows-gnu') }}
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW64
+          install: mingw-w64-ucrt-x86_64-gcc
+
+      - name: Install Cargo Clippy
+        run: rustup component add clippy
+
+      - name: Check out the main branch
+        uses: actions/checkout@v4
+
+      - name: Build ${{ inputs.package-name }} for ${{ matrix.name }} with the ${{ matrix.profile }} profile
+        run: cargo build --target ${{ matrix.target }} --profile ${{ matrix.profile }}
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Build ${{ inputs.package-name }} for ${{ matrix.name }} with the ${{ matrix.profile }} profile with all features
+        run: cargo build --target ${{ matrix.target }} --profile ${{ matrix.profile }} --all-features
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Run Cargo Clippy for ${{ matrix.name }} with the ${{ matrix.profile }} profile
+        run: cargo clippy --target ${{ matrix.target }} --profile ${{ matrix.profile }}
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Run Cargo Clippy for ${{ matrix.name }} with the ${{ matrix.profile }} profile with all features
+        run: cargo clippy --target ${{ matrix.target }} --profile ${{ matrix.profile }} --all-features
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Run Cargo tests
+        if: ${{ matrix.tests }}
+        run: cargo test --target ${{ matrix.target }} --profile ${{ matrix.profile }}
+        working-directory: ${{ inputs.package-name }}
+        env:
+          RUSTFLAGS: "-D warnings"
