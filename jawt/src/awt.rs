@@ -95,7 +95,7 @@ impl Awt {
     /// # Safety
     ///
     /// The caller should ensure that the underlying instance keep containing valid field values.
-    pub const unsafe fn as_mut(&mut self) -> &mut JAWT {
+    pub unsafe fn as_mut(&mut self) -> &mut JAWT {
         &mut self.0
     }
 
