@@ -2,7 +2,7 @@
 
 use objc2::rc::Retained;
 use objc2::Message;
-use objc2_quartz_core::CAMetalLayer;
+use objc2_quartz_core::{CAMetalLayer, CATransaction};
 use wgpu::*;
 
 use super::RenderTarget;
@@ -37,6 +37,9 @@ impl RenderTarget for CAMetalLayerRenderTarget {
 
 impl Drop for CAMetalLayerRenderTarget {
     fn drop(&mut self) {
+        CATransaction::begin();
         self.0.removeFromSuperlayer();
+        CATransaction::commit();
+        CATransaction::flush();
     }
 }
