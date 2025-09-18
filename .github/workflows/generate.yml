@@ -1,0 +1,42 @@
+name: Generate bindings
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  generate:
+    name: Generate bindings
+    strategy:
+      matrix:
+        os: [windows, macos, unix]
+        include:
+          - os: windows
+            runner: windows-latest
+          - os: macos
+            runner: macos-latest
+          - os: unix
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out the main branch
+        uses: actions/checkout@v4
+      - name: Install X11 headers
+        if: ${{ matrix.os == 'unix' }}
+        run: sudo apt install -y libx11-dev
+      - name: Generate bindings
+        run: cargo run -p jawt-sys-generator
+      - name: Publish changes
+        shell: pwsh
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          $branchName = "bindings/$(Get-Date -Format 'yyyyMMdd')/${{ matrix.os }}-$(Get-Date -Format 'HHmmss')";
+          git config user.email "${{ github.actor }}";
+          git config user.name "${{ github.actor }}@users.noreply.github.com";
+          git switch -c $branchName;
+          git add ./jawt-sys/src/bindings_${{ matrix.os }}.rs;
+          git commit -m "Generate ${{ matrix.os }} bindings";
+          git push -u origin $branchName
