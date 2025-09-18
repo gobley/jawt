@@ -4,7 +4,7 @@ description = "Cross-platform Rust bindings to Java AWT"
 homepage = "https://github.com/gobley/jawt"
 repository = "https://github.com/gobley/jawt"
 readme = "README.md"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.74"
 authors = ["Chanjung Kim <chanjungkim@paxbun.dev>"]
@@ -20,7 +20,7 @@ euclid = { version = "0.22", optional = true, default-features = false, features
     # See servo/euclid#544
     "std",
 ] }
-jawt-sys = { version = "0.1", path = "../jawt-sys", default-features = false }
+jawt-sys = { version = "0.2", path = "../jawt-sys", default-features = false }
 jni = { workspace = true }
 libc = { version = "0.2", default-features = false }
 once_cell = "1"
