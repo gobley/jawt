@@ -4,7 +4,7 @@
 
 ## [`jawt` 0.2.0](https://github.com/gobley/jawt/releases/tag/jawt-v0.2.0) - 2025-09-19
 
-- Replaced the unsafe implementation of `JAWT_GetAWT` caching to the one using `once_cell` ([#2](https://github.com/gobley/jawt/pull/2)).
+- Replaced the unsafe implementation of `JAWT_GetAWT` caching with one using `once_cell` ([#2](https://github.com/gobley/jawt/pull/2)).
 
 ## [`jawt-sys` 0.2.0](https://github.com/gobley/jawt/releases/tag/jawt-sys-v0.2.0) - 2025-09-19
 
