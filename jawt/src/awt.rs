@@ -107,41 +107,26 @@ impl Awt {
 
     #[inline(always)]
     fn find_get_awt(env: &JNIEnv) -> Option<UnsafeAwtGetter> {
-        use std::sync::atomic::{AtomicPtr, Ordering};
+        use once_cell::sync::OnceCell;
 
-        fn invalid_get_awt(_: *mut jni::sys::JNIEnv, _: *mut JAWT) -> jboolean {
-            0
-        }
+        static GET_AWT: OnceCell<UnsafeAwtGetter> = OnceCell::new();
 
-        const INVALID_GET_AWT: *mut () = invalid_get_awt as _;
-        static GET_AWT: AtomicPtr<()> = AtomicPtr::new(INVALID_GET_AWT);
-
-        let cached_get_awt = GET_AWT.load(Ordering::SeqCst);
-        if cached_get_awt != INVALID_GET_AWT {
-            return Some(unsafe {
-                std::mem::transmute::<*mut (), UnsafeAwtGetter>(cached_get_awt)
-            });
-        }
-
-        let finders: &[unsafe fn(&JNIEnv) -> Option<UnsafeAwtGetter>] = &[
-            #[cfg(feature = "dynamic-get-awt")]
-            Self::find_dynamic_get_awt,
-            #[cfg(feature = "static-get-awt")]
-            Self::find_static_get_awt,
-        ];
-        for finder in finders {
-            if let Some(get_awt) = unsafe { finder(env) } {
-                let _ = GET_AWT.compare_exchange(
-                    INVALID_GET_AWT,
-                    get_awt as _,
-                    Ordering::SeqCst,
-                    Ordering::SeqCst,
-                );
-                return Some(get_awt);
+        let cached_get_awt = GET_AWT.get_or_try_init(|| {
+            let finders: &[unsafe fn(&JNIEnv) -> Option<UnsafeAwtGetter>] = &[
+                #[cfg(feature = "dynamic-get-awt")]
+                Self::find_dynamic_get_awt,
+                #[cfg(feature = "static-get-awt")]
+                Self::find_static_get_awt,
+            ];
+            for finder in finders {
+                if let Some(get_awt) = unsafe { finder(env) } {
+                    return Ok(get_awt);
+                }
             }
-        }
+            Err(())
+        });
 
-        None
+        cached_get_awt.ok().copied()
     }
 
     #[inline(always)]

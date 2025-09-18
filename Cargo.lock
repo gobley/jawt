@@ -1095,6 +1095,7 @@ dependencies = [
  "objc2",
  "objc2-app-kit",
  "objc2-quartz-core",
+ "once_cell",
  "utf16_literal",
  "windows 0.60.0",
  "x11-dl",
