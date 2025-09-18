@@ -7,7 +7,7 @@ use anyhow::Context;
 use bindgen::RustTarget;
 use clap::Parser;
 use once_cell::sync::Lazy;
-use regex::Regex;
+use regex::{Captures, Regex, Replacer};
 use url::Url;
 
 #[derive(Parser)]
@@ -171,11 +171,36 @@ async fn main() -> anyhow::Result<()> {
 
     // Postprocessing
     {
+        // Remove definitions of Windows-API types, as these are provided by the windows-sys crate.
         if matches!(current_platform, Platform::Windows) {
             let regex = Regex::new("(?m)pub type (HWND|HBITMAP|HDC|HPALETTE) = .*;\r?\n?").unwrap();
             bindings = regex.replace_all(&bindings, "").into_owned();
         }
+        // Add #[cfg(feature = "static-get-awt")] to JAWT_GetAWT
         bindings = bindings.replace("pub fn", "#[cfg(feature = \"static-get-awt\")]\n    pub fn");
+        // Replace the type of all macro constants to jint
+        {
+            struct JintConstantReplacer;
+            impl Replacer for JintConstantReplacer {
+                fn replace_append(&mut self, caps: &Captures<'_>, dst: &mut String) {
+                    use std::fmt::Write as _;
+
+                    dst.push_str("pub const ");
+                    dst.push_str(&caps[1]);
+                    dst.push_str(": jint = ");
+
+                    let constant_value: u32 = caps[2].parse().unwrap();
+                    let constant_value: i32 = constant_value as i32;
+                    write!(dst, "{constant_value}").unwrap();
+                    dst.push(';');
+                }
+            }
+
+            let regex = Regex::new("(?m)pub const (JAWT_.*): u32 = (.*);").unwrap();
+            bindings = regex
+                .replace_all(&bindings, JintConstantReplacer)
+                .into_owned();
+        }
     }
 
     let bindings_destination_dir = sys_manifest_dir().join("src");
