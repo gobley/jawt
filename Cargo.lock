@@ -1085,7 +1085,7 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "jawt"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bitflags 2.9.1",
  "euclid",
@@ -1103,7 +1103,7 @@ dependencies = [
 
 [[package]]
 name = "jawt-sys"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "jni-sys",
  "windows-sys 0.60.2",
