@@ -1,6 +1,5 @@
 [workspace]
-members = ["jawt", "jawt-sys"]
-exclude = ["jawt-sys-generator", "jawt-tests"]
+members = ["jawt", "jawt-sys", "jawt-sys-generator", "jawt-tests"]
 resolver = "2"
 
 [workspace.dependencies]
