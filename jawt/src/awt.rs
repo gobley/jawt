@@ -321,7 +321,7 @@ impl Awt {
     ///
     /// [CALayer]: objc2_quartz_core::CALayer
     pub fn from_version_with_ca_layer(env: &JNIEnv, version: AwtVersion) -> Option<Self> {
-        Self::from_version_raw(env, version.0 | JAWT_MACOSX_USE_CALAYER as jint)
+        Self::from_version_raw(env, version.0 | JAWT_MACOSX_USE_CALAYER)
     }
 
     /// Version of this structure.

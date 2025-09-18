@@ -88,7 +88,7 @@ impl DrawingSurface {
                 self.inner.as_ptr()
             )
         };
-        if lock_result & JAWT_LOCK_ERROR as jint != 0 {
+        if lock_result & JAWT_LOCK_ERROR != 0 {
             return None;
         }
         Some((
@@ -114,13 +114,13 @@ impl Drop for DrawingSurface {
 
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct DrawingSurfaceLockResult: i32 {
+    pub struct DrawingSurfaceLockResult: jint {
         /// When the clip region has changed.
-        const CLIP_CHANGED = JAWT_LOCK_CLIP_CHANGED as jint;
+        const CLIP_CHANGED = JAWT_LOCK_CLIP_CHANGED;
         /// When the bounds of the surface have changed.
-        const BOUNDS_CHANGED = JAWT_LOCK_BOUNDS_CHANGED as jint;
+        const BOUNDS_CHANGED = JAWT_LOCK_BOUNDS_CHANGED;
         /// When the surface itself has changed.
-        const SURFACE_CHANGED = JAWT_LOCK_SURFACE_CHANGED as jint;
+        const SURFACE_CHANGED = JAWT_LOCK_SURFACE_CHANGED;
     }
 }
 
