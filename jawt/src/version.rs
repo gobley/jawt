@@ -28,13 +28,13 @@ impl AwtVersion {
         self.0
     }
 
-    pub const VERSION_1_3: Self = Self(JAWT_VERSION_1_3 as _);
+    pub const VERSION_1_3: Self = Self(JAWT_VERSION_1_3);
     #[cfg(feature = "java-1-4")]
-    pub const VERSION_1_4: Self = Self(JAWT_VERSION_1_4 as _);
+    pub const VERSION_1_4: Self = Self(JAWT_VERSION_1_4);
     #[cfg(feature = "java-1-4")]
-    pub const VERSION_1_7: Self = Self(JAWT_VERSION_1_7 as _);
+    pub const VERSION_1_7: Self = Self(JAWT_VERSION_1_7);
     #[cfg(feature = "java-9")]
-    pub const VERSION_9: Self = Self(JAWT_VERSION_9 as _);
+    pub const VERSION_9: Self = Self(JAWT_VERSION_9);
 }
 
 impl From<AwtVersion> for jint {
