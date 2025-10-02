@@ -320,14 +320,8 @@ impl Awt {
     ///
     /// [java.awt.Component]: https://docs.oracle.com/javase/8/docs/api/java/awt/Component.html
     pub fn drawing_surface(&self, env: &JNIEnv, target: JObject) -> Option<DrawingSurface> {
-        let get_drawing_surface = self
-            .0
-            .GetDrawingSurface
-            .expect("JAWT.GetDrawingSurface is not available");
-        let free_drawing_surface = self
-            .0
-            .FreeDrawingSurface
-            .expect("JAWT.FreeDrawingSurface is not available");
+        let get_drawing_surface = crate::utils::unwrap_fn!(self.0, JAWT.GetDrawingSurface);
+        let free_drawing_surface = crate::utils::unwrap_fn!(self.0, JAWT.FreeDrawingSurface);
         let drawing_surface =
             NonNull::new(unsafe { get_drawing_surface(env.get_raw(), target.into_raw()) })?;
         Some(DrawingSurface {
@@ -345,7 +339,7 @@ impl Awt {
     ///
     /// After invoking this function, [Awt::unlock] should be called.
     pub unsafe fn lock(&self, env: &JNIEnv) {
-        unsafe { (self.0.Lock.expect("JAWT.Lock is not available"))(env.get_raw()) };
+        unsafe { crate::utils::unwrap_fn!(self.0, JAWT.Lock)(env.get_raw()) };
     }
 
     #[cfg(feature = "java-1-4")]
@@ -357,7 +351,7 @@ impl Awt {
     ///
     /// [Awt::lock] should be called before invoking this function.
     pub unsafe fn unlock(&self, env: &JNIEnv) {
-        unsafe { (self.0.Unlock.expect("JAWT.Unlock is not available"))(env.get_raw()) };
+        unsafe { crate::utils::unwrap_fn!(self.0, JAWT.Unlock)(env.get_raw()) };
     }
 }
 
@@ -407,10 +401,7 @@ impl Awt {
         env: &JNIEnv<'env>,
         platform_info: AwtPlatformInfo,
     ) -> JObject<'env> {
-        JObject::from_raw((self
-            .0
-            .GetComponent
-            .expect("JAWT.GetComponent is not available"))(
+        JObject::from_raw(crate::utils::unwrap_fn!(self.0, JAWT.GetComponent)(
             env.get_raw(),
             Self::lower_platform_info(platform_info),
         ))
@@ -463,10 +454,10 @@ impl Awt {
         env: &JNIEnv<'env>,
         platform_info: AwtPlatformInfo,
     ) -> Option<AwtEmbeddedFrame<'env>> {
-        AwtEmbeddedFrame::from_inner(JObject::from_raw((self
-            .0
-            .CreateEmbeddedFrame
-            .expect("JAWT.CreateEmbeddedFrame is not available"))(
+        AwtEmbeddedFrame::from_inner(JObject::from_raw(crate::utils::unwrap_fn!(
+            self.0,
+            JAWT.CreateEmbeddedFrame
+        )(
             env.get_raw(),
             Self::lower_platform_info(platform_info),
         )))
@@ -493,7 +484,7 @@ impl Awt {
     /// [java.awt.Component.setBounds()]: https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/java/awt/Component.html#setBounds(int,int,int,int)
     pub fn set_bounds(&self, env: &JNIEnv, embedded_frame: AwtEmbeddedFrame, new_location: Rect) {
         unsafe {
-            self.0.SetBounds.expect("JAWT.SetBounds is not available")(
+            crate::utils::unwrap_fn!(self.0, JAWT.SetBounds)(
                 env.get_raw(),
                 embedded_frame.into_inner().into_raw(),
                 new_location.x,
@@ -517,9 +508,7 @@ impl Awt {
         activate: bool,
     ) {
         unsafe {
-            self.0
-                .SynthesizeWindowActivation
-                .expect("JAWT.SynthesizeWindowActivation is not available")(
+            crate::utils::unwrap_fn!(self.0, JAWT.SynthesizeWindowActivation)(
                 env.get_raw(),
                 embedded_frame.into_inner().into_raw(),
                 activate as jboolean,

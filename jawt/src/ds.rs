@@ -81,12 +81,7 @@ impl DrawingSurface {
     /// Lock the surface of the target component for native rendering.
     pub fn lock(&mut self) -> Option<(DrawingSurfaceLockResult, DrawingSurfaceGuard<'_>)> {
         let lock_result = unsafe {
-            (self
-                .as_ref()
-                .Lock
-                .expect("JAWT_DrawingSurface.Lock is not available"))(
-                self.inner.as_ptr()
-            )
+            crate::utils::unwrap_fn!(self.as_ref(), JAWT_DrawingSurface.Lock)(self.inner.as_ptr())
         };
         if lock_result & JAWT_LOCK_ERROR != 0 {
             return None;
@@ -132,16 +127,14 @@ pub struct DrawingSurfaceGuard<'a> {
 
 impl DrawingSurfaceGuard<'_> {
     pub fn drawing_surface_info(&mut self) -> Option<DrawingSurfaceInfo<'_>> {
-        let get_drawing_surface_info = self
-            .drawing_surface
-            .as_ref()
-            .GetDrawingSurfaceInfo
-            .expect("JAWT_DrawingSurface.GetDrawingSurfaceInfo is not available");
-        let free_drawing_surface_info = self
-            .drawing_surface
-            .as_ref()
-            .FreeDrawingSurfaceInfo
-            .expect("JAWT_DrawingSurface.FreeDrawingSurfaceInfo is not available");
+        let get_drawing_surface_info = crate::utils::unwrap_fn!(
+            self.drawing_surface.as_ref(),
+            JAWT_DrawingSurface.GetDrawingSurfaceInfo,
+        );
+        let free_drawing_surface_info = crate::utils::unwrap_fn!(
+            self.drawing_surface.as_ref(),
+            JAWT_DrawingSurface.FreeDrawingSurfaceInfo,
+        );
         let drawing_surface_info =
             NonNull::new(unsafe { get_drawing_surface_info(self.drawing_surface.inner.as_ptr()) })?;
         Some(DrawingSurfaceInfo {
@@ -155,11 +148,7 @@ impl DrawingSurfaceGuard<'_> {
 impl Drop for DrawingSurfaceGuard<'_> {
     fn drop(&mut self) {
         unsafe {
-            (self
-                .drawing_surface
-                .as_ref()
-                .Unlock
-                .expect("JAWT_DrawingSurface.Unlock is not available"))(
+            crate::utils::unwrap_fn!(self.drawing_surface.as_ref(), JAWT_DrawingSurface.Unlock)(
                 self.drawing_surface.inner.as_ptr(),
             )
         };

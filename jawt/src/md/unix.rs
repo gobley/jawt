@@ -84,10 +84,7 @@ impl X11DrawingSurfaceInfo {
     #[cfg(feature = "java-1-4")]
     pub fn get_awt_color(&self, dsi: &DrawingSurfaceInfo, r: i32, g: i32, b: i32) -> i32 {
         unsafe {
-            (self
-                .0
-                .GetAWTColor
-                .expect("JAWT_X11DrawingSurfaceInfo.GetAWTColor is not available"))(
+            crate::utils::unwrap_fn!(self.0, JAWT_X11DrawingSurfaceInfo.GetAWTColor)(
                 dsi.as_ref().ds,
                 r as _,
                 g as _,

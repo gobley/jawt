@@ -24,3 +24,5 @@ mod version;
 pub use version::*;
 
 pub use jawt_sys as sys;
+
+mod utils;
