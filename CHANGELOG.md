@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/gobley/jawt/compare/jawt-v0.2.0...HEAD)
 
+## [`jawt` 0.2.1](https://github.com/gobley/jawt/releases/tag/jawt-v0.2.1) - 2025-10-02
+
+- Internally used a common macro to handle function pointer null checking ([#6](https://github.com/gobley/jawt/pull/6)).
+
 ## [`jawt` 0.2.0](https://github.com/gobley/jawt/releases/tag/jawt-v0.2.0) - 2025-09-19
 
 - Replaced the unsafe caching of `JAWT_GetAWT` with an implementation using `once_cell` ([#2](https://github.com/gobley/jawt/pull/2)).
