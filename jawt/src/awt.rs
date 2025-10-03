@@ -143,7 +143,7 @@ impl Awt {
         let new_string_utf = unsafe { (**env).NewStringUTF }?;
 
         // C-string literals become stable starting with Rust 1.77
-        let system_class = unsafe { find_class(env, b"java/lang/System\0".as_ptr() as _) };
+        let system_class = unsafe { find_class(env, b"java/lang/System\0".as_ptr().cast()) };
         if system_class.is_null() {
             return None;
         }
@@ -152,15 +152,15 @@ impl Awt {
             get_static_method_id(
                 env,
                 system_class,
-                b"getProperty\0".as_ptr() as _,
-                b"(Ljava/lang/String;)Ljava/lang/String;\0".as_ptr() as _,
+                b"getProperty\0".as_ptr().cast(),
+                b"(Ljava/lang/String;)Ljava/lang/String;\0".as_ptr().cast(),
             )
         };
         if get_property_method.is_null() {
             return None;
         }
 
-        let java_home_string = unsafe { new_string_utf(env, b"java.home\0".as_ptr() as _) };
+        let java_home_string = unsafe { new_string_utf(env, b"java.home\0".as_ptr().cast()) };
         if java_home_string.is_null() {
             return None;
         }
@@ -198,7 +198,7 @@ impl Awt {
 
         ptr::copy(java_home_chars, jawt_path.as_mut_ptr(), java_home_chars_len);
         ptr::copy(
-            path_suffix.as_ptr() as _,
+            path_suffix.as_ptr().cast(),
             jawt_path.as_mut_ptr().add(java_home_chars_len),
             path_suffix.len(),
         );
@@ -207,8 +207,8 @@ impl Awt {
 
         release_string_chars(env, java_home, java_home_chars);
 
-        let library = LoadLibraryW(PCWSTR(jawt_path.as_mut_ptr() as _)).ok()?;
-        let symbol = GetProcAddress(library, PCSTR(b"JAWT_GetAWT\0".as_ptr() as _))?;
+        let library = LoadLibraryW(PCWSTR(jawt_path.as_mut_ptr().cast())).ok()?;
+        let symbol = GetProcAddress(library, PCSTR(b"JAWT_GetAWT\0".as_ptr().cast()))?;
 
         Some(std::mem::transmute::<
             unsafe extern "system" fn() -> isize,
@@ -240,7 +240,7 @@ impl Awt {
 
         ptr::copy(java_home_chars, jawt_path.as_mut_ptr(), java_home_chars_len);
         ptr::copy(
-            path_suffix.as_ptr() as _,
+            path_suffix.as_ptr().cast(),
             jawt_path.as_mut_ptr().add(java_home_chars_len),
             path_suffix.len(),
         );
@@ -249,13 +249,13 @@ impl Awt {
 
         release_string_utf_chars(env, java_home, java_home_chars);
 
-        let handle = dlopen(jawt_path.as_ptr() as _, RTLD_LAZY | RTLD_LOCAL);
+        let handle = dlopen(jawt_path.as_ptr().cast(), RTLD_LAZY | RTLD_LOCAL);
         if handle.is_null() {
             dlerror();
             return None;
         }
 
-        let symbol = dlsym(handle, b"JAWT_GetAWT\0".as_ptr() as _);
+        let symbol = dlsym(handle, b"JAWT_GetAWT\0".as_ptr().cast());
         if symbol.is_null() {
             dlerror();
             return None;
@@ -311,7 +311,7 @@ impl Awt {
 
     /// Version of this structure.
     pub fn version(&self) -> AwtVersion {
-        AwtVersion(self.0.version as _)
+        AwtVersion(self.0.version)
     }
 
     /// Return a [DrawingSurface] from a target Java object. This value may be cached. Returns

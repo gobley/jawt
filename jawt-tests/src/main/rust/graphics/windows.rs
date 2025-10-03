@@ -43,7 +43,7 @@ impl RenderTarget for WindowRenderTarget {
             .create_surface_unsafe(SurfaceTargetUnsafe::RawHandle {
                 raw_display_handle: RawDisplayHandle::Windows(WindowsDisplayHandle::new()),
                 raw_window_handle: RawWindowHandle::Win32(Win32WindowHandle::new(
-                    NonZeroIsize::new((self.0).0 as _).unwrap(),
+                    NonZeroIsize::new((self.0).0 as isize).expect("HWND is NULL"),
                 )),
             })
             .expect("could not create WGPU surface")

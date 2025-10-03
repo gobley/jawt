@@ -30,7 +30,7 @@ impl RenderTarget for CAMetalLayerRenderTarget {
         instance
             .create_surface_unsafe(SurfaceTargetUnsafe::CoreAnimationLayer(self.0.as_ref()
                 as *const CAMetalLayer
-                as _))
+                as *mut std::ffi::c_void))
             .expect("could not create WGPU surface")
     }
 }
