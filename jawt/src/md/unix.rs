@@ -78,7 +78,7 @@ impl X11DrawingSurfaceInfo {
     }
 
     pub fn depth(&self) -> i32 {
-        self.0.depth as i32
+        self.0.depth as _
     }
 
     #[cfg(feature = "java-1-4")]
@@ -86,10 +86,10 @@ impl X11DrawingSurfaceInfo {
         unsafe {
             crate::utils::unwrap_fn!(self.0, JAWT_X11DrawingSurfaceInfo.GetAWTColor)(
                 dsi.as_ref().ds,
-                r as std::ffi::c_int,
-                g as std::ffi::c_int,
-                b as std::ffi::c_int,
-            ) as i32
+                r as _,
+                g as _,
+                b as _,
+            ) as _
         }
     }
 }
